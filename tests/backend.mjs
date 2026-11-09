@@ -1,0 +1,46 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import ts from 'typescript';
+import {createRequire} from 'node:module';
+import {DatabaseSync} from 'node:sqlite';
+const require=createRequire(import.meta.url), db=new DatabaseSync(':memory:');
+db.exec(fs.readFileSync('drizzle/0000_fat_junta.sql','utf8'));
+const env={CMS_EDITOR_EMAILS:'editor@example.test',DB:{prepare(sql){const params=[];const api={bind(...v){params.push(...v);return api},async first(){return db.prepare(sql).get(...params)||null},async run(){return {meta:{changes:db.prepare(sql).run(...params).changes}}},async all(){return {results:db.prepare(sql).all(...params)}}};return api}}};
+function load(file,extra={}){const code=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText;const exports={};vm.runInNewContext(code,{exports,require:n=>n in extra?extra[n]:createRequire(process.cwd()+'/'+file)(n),Response,Request,URL,Date,JSON,Number,Set,console},{filename:file});return exports}
+const content=load('lib/content.ts');const auth=load('lib/editor-auth.ts',{'cloudflare:workers':{env}});const api=load('app/api/content/route.ts',{'cloudflare:workers':{env},'@/lib/content':content,'@/lib/editor-auth':auth});const hist=load('app/api/history/route.ts',{'cloudflare:workers':{env},'@/lib/editor-auth':auth});
+const request=(body,auth=true,origin='https://test.local')=>new Request('https://test.local/api/content',{method:'PUT',headers:{'Content-Type':'application/json',Origin:origin,...(auth?{'oai-authenticated-user-id':'local-test-editor','oai-authenticated-user-email':'editor@example.test'}:{})},body:JSON.stringify(body)});
+let initial=await (await api.GET(new Request('https://test.local/api/content'))).json();assert.equal(initial.version,0);assert.equal(initial.content.events.length,5);
+assert.equal((await api.PUT(request({version:0,content:content.seed},false))).status,401);
+assert.equal((await api.PUT(request({version:0,content:content.seed},true,'https://other.local'))).status,403);
+const invalid=structuredClone(content.seed);invalid.events[0].date='2026-02-30';assert.equal((await api.PUT(request({version:0,content:invalid}))).status,400);
+const invalidTime=structuredClone(content.seed);invalidTime.events[0].end='01:00';assert.equal((await api.PUT(request({version:0,content:invalidTime}))).status,400);
+const draft=structuredClone(content.seed);draft.events.push({...draft.events[0],id:'draft-test',title:'Entwurf zur Prüfung',published:false});assert.equal((await api.PUT(request({version:0,content:draft}))).status,200);
+let saved=await (await api.GET(new Request('https://test.local/api/content'))).json();assert.equal(saved.version,1);assert.equal(saved.content.events.some(e=>e.id==='draft-test'),false);const editorCopy=await (await api.GET(new Request('https://test.local/api/content?editor=1',{headers:{'oai-authenticated-user-id':'local-test-editor','oai-authenticated-user-email':'editor@example.test'}}))).json();assert.equal(editorCopy.content.events.at(-1).published,false);
+assert.equal((await api.PUT(request({version:0,content:content.seed}))).status,409);
+assert.equal((await api.PUT(request({version:1,content:content.seed}))).status,200);
+let list=await (await hist.GET(new Request('https://test.local/api/history',{headers:{'oai-authenticated-user-id':'local-test-editor','oai-authenticated-user-email':'editor@example.test'}}))).json();assert.equal(list.length,2);
+let old=await (await hist.GET(new Request('https://test.local/api/history?version=1',{headers:{'oai-authenticated-user-id':'local-test-editor','oai-authenticated-user-email':'editor@example.test'}}))).json();assert.equal(old.content.events.at(-1).title,'Entwurf zur Prüfung');
+assert.equal((await hist.GET(new Request('https://test.local/api/history'))).status,401);
+console.log('PASS: seed, authentication, cross-origin rejection, date/time validation, persistent save, draft state, conflict protection, revision history and restoration data.');
+const older=structuredClone(content.seed);delete older.legacyPages;delete older.pages.kindergarten;
+const upgraded=content.contentSchema.parse(older);assert.ok(upgraded.legacyPages.length>=20);assert.ok(upgraded.pages.kindergarten.includes('Nikolausstiftung'));
+const index=JSON.parse(fs.readFileSync('lib/legacy-index.json','utf8'));assert.equal(index.length,52);
+const slugs=new Set(content.seed.legacyPages.map(p=>p.slug));const routes=new Set(['start','inhalt','gottesdienste','dekanat','pfarre','glaube','kindertagesheim','kontakt','kalender','gemeinschaft']);
+for(const link of [...index,...content.seed.legacyPages.flatMap(p=>p.links)]){if(link.href.startsWith('/#')){const target=link.href.slice(2).split('~')[0];assert.ok(routes.has(target)||slugs.has(target),'Missing route: '+link.href)}}
+for(const page of content.seed.legacyPages)for(const img of page.images)assert.ok(fs.existsSync('public'+img.src),'Missing image '+img.src);
+assert.ok(fs.existsSync('public/dokumente/wo_ka_nov.pdf'));assert.ok(fs.existsSync('public/dokumente/wo_ka_10_02.pdf'));
+console.log('PASS: old saved content upgrades without losing edits; 52 original index entries resolve; imported article links, images and PDFs exist.');
+
+const strangerHeaders={'oai-authenticated-user-id':'other-user','oai-authenticated-user-email':'stranger@example.test'};
+const strangerWrite=new Request('https://test.local/api/content',{method:'PUT',headers:{...strangerHeaders,'Content-Type':'application/json',Origin:'https://test.local'},body:JSON.stringify({version:2,content:content.seed})});
+assert.equal((await api.PUT(strangerWrite)).status,403);
+assert.equal((await api.GET(new Request('https://test.local/api/content?editor=1'))).status,401);
+assert.equal((await api.GET(new Request('https://test.local/api/content?editor=1',{headers:strangerHeaders}))).status,403);
+assert.equal((await hist.GET(new Request('https://test.local/api/history',{headers:strangerHeaders}))).status,403);
+assert.equal(auth.isEditor(new Headers({'oai-authenticated-user-id':'missing-email'})),false);
+const configured=env.CMS_EDITOR_EMAILS;env.CMS_EDITOR_EMAILS='';assert.equal(auth.isEditor(new Headers({'oai-authenticated-user-id':'local-test-editor','oai-authenticated-user-email':'editor@example.test'})),false);env.CMS_EDITOR_EMAILS=configured;
+const withDrafts=structuredClone(content.seed);withDrafts.events.push({...withDrafts.events[0],id:'hidden-event',published:false});withDrafts.news.push({...withDrafts.news[0],id:'hidden-news',published:false});
+assert.equal((await api.PUT(request({version:2,content:withDrafts}))).status,200);
+const anonymous=await (await api.GET(new Request('https://test.local/api/content'))).json();assert.equal(anonymous.content.events.some(x=>x.id==='hidden-event'),false);assert.equal(anonymous.content.news.some(x=>x.id==='hidden-news'),false);
+console.log('PASS: public API hides drafts; anonymous and non-editor users cannot read editorial data/history or write; absent configuration denies all editors.');
