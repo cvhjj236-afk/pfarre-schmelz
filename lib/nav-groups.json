@@ -1,0 +1,129 @@
+[
+ {
+  "id": "pfarre",
+  "title": "Pfarre & Gemeinschaft",
+  "links": [
+   {
+    "label": "Pfarrkanzlei, Adressen & Kanzleistunden",
+    "href": "/#kontakt"
+   },
+   {
+    "label": "Gruppenstunden & Angebote",
+    "href": "/#artikel-gruppenstunden-htm"
+   },
+   {
+    "label": "Kirche & Geschichte",
+    "href": "/#artikel-kirche-htm"
+   },
+   {
+    "label": "Priester & Seelsorge",
+    "href": "/#artikel-priester-kopie-htm"
+   },
+   {
+    "label": "Pfarrgemeinderat",
+    "href": "/#artikel-pgr-htm"
+   },
+   {
+    "label": "Chronik",
+    "href": "/#artikel-chronik-htm"
+   },
+   {
+    "label": "Kirchenbeitrag & weitere Adressen",
+    "href": "/#artikel-pfarre-htm"
+   },
+   {
+    "label": "Kindertagesheim – Kindergarten & Hort",
+    "href": "/#kindertagesheim"
+   }
+  ]
+ },
+ {
+  "id": "gottesdienste",
+  "title": "Gottesdienste & Termine",
+  "links": [
+   {
+    "label": "Gottesdienstzeiten",
+    "href": "/#gottesdienste"
+   },
+   {
+    "label": "Pfarrmitteilungen & Monatsvorschau",
+    "href": "/#artikel-index-html"
+   },
+   {
+    "label": "Gottesdienstordnung im Detail",
+    "href": "/#artikel-gottesdienste-htm"
+   },
+   {
+    "label": "Beichtgelegenheiten",
+    "href": "/#artikel-gottesdienste-htm~Beichtgelegenheit"
+   },
+   {
+    "label": "Aktuelle Pfarrtermine",
+    "href": "/#kalender"
+   },
+   {
+    "label": "Dekanatskalender",
+    "href": "/#dekanat"
+   },
+   {
+    "label": "Wochenkalender November (PDF)",
+    "href": "/dokumente/wo_ka_nov.pdf"
+   },
+   {
+    "label": "Vorheriger Wochenkalender (PDF)",
+    "href": "/dokumente/wo_ka_10_02.pdf"
+   }
+  ]
+ },
+ {
+  "id": "glaube",
+  "title": "Glaube & Kirchenjahr",
+  "links": [
+   {
+    "label": "Kirchenjahr – alle Themen",
+    "href": "/#artikel-glaube-htm"
+   },
+   {
+    "label": "Gebetsschatz der Kirche",
+    "href": "/#artikel-gebetsschatz-htm"
+   },
+   {
+    "label": "Die heilige Eucharistie",
+    "href": "/#artikel-die-heilige-eucharistie-htm"
+   },
+   {
+    "label": "Im Kreuz ist Heil",
+    "href": "/#artikel-thema-des-monats-maerz-htm"
+   },
+   {
+    "label": "Kreuzwegandacht",
+    "href": "/#artikel-kreuzweg-htm"
+   },
+   {
+    "label": "Alles hat seine Stunde",
+    "href": "/#artikel-thema-des-monats-februar-htm"
+   },
+   {
+    "label": "Advent",
+    "href": "/#artikel-thema-des-monats-dezember-htm"
+   },
+   {
+    "label": "Allerheiligen",
+    "href": "/#artikel-thema-des-monats-november-htm"
+   },
+   {
+    "label": "Oktober – Rosenkranzmonat",
+    "href": "/#artikel-thema-des-monats-oktober-htm"
+   },
+   {
+    "label": "Menschenbilder – die Heiligen",
+    "href": "/#artikel-menschenbilder-htm"
+   },
+   {
+    "label": "Abkürzungen der biblischen Bücher",
+    "href": "/#artikel-abk-htm"
+   }
+  ],
+  "heading": "Glauben entdecken"
+ }
+]
