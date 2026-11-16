@@ -20,9 +20,9 @@ Die Tabelle `revisions` speichert jeden Inhaltstand atomar. Ein Versionsvergleic
 
 ## Zugriff
 
-Die Besucherwebsite ist öffentlich. `/redaktion` zeigt ohne Anmeldung eine Login-Seite. Die Anmeldung erfolgt über ChatGPT; Redaktionszugriff wird anschließend serverseitig gegen die Runtime-Konfiguration `CMS_EDITOR_EMAILS` geprüft. Nur freigegebene Konten können die CMS-Daten lesen, Änderungen speichern und Versionen aufrufen. Eine Anmeldung allein gibt keine Bearbeitungsrechte. Ohne konfigurierte Freigabe bleibt der Zugriff gesperrt.
+Die Besucherwebsite ist öffentlich. `/redaktion` wird durch Cloudflare Access geschützt (Anmeldung per E-Mail-Code). Die Anwendung prüft das Access-JWT (Cookie `CF_Authorization`) selbst gegen die Access-Schlüssel und gleicht die E-Mail-Adresse anschließend serverseitig mit `CMS_EDITOR_EMAILS` ab. Konfiguration: `CF_ACCESS_TEAM_DOMAIN` und `CF_ACCESS_AUD` (Variablen in `wrangler.jsonc`). Nur freigegebene Konten können die CMS-Daten lesen, Änderungen speichern und Versionen aufrufen. Eine Anmeldung allein gibt keine Bearbeitungsrechte. Ohne konfigurierte Freigabe bleibt der Zugriff gesperrt.
 
-`GET /api/content` liefert ausschließlich veröffentlichte Termine und Meldungen. `GET /api/content?editor=1` liefert auch Entwürfe, verlangt jedoch ein freigegebenes Konto. Schreibzugriffe verlangen außerdem einen passenden Origin-Header. Identitätsheader werden ausschließlich vom authentifizierenden Hosting-Gateway gesetzt; diese Anwendung muss hinter diesem Gateway betrieben werden. Für einen Umzug auf anderes Hosting muss die Identitätsprüfung durch dessen verifizierte Authentifizierung ersetzt werden.
+`GET /api/content` liefert ausschließlich veröffentlichte Termine und Meldungen. `GET /api/content?editor=1` liefert auch Entwürfe, verlangt jedoch ein freigegebenes Konto. Schreibzugriffe verlangen außerdem einen passenden Origin-Header. Identitätsheader allein werden nie vertraut; maßgeblich ist das verifizierte Access-JWT.
 
 Die freigegebenen E-Mail-Adressen werden als serverseitiges Secret konfiguriert und nicht im Quellcode gespeichert. `.env.example` enthält nur den Konfigurationsnamen und einen Beispielwert. Die Anwendung verwaltet keine Passwörter.
 
@@ -64,6 +64,6 @@ Die Übernahme ergänzt alte gespeicherte Inhaltsstände beim Lesen um die neuen
 
 Der Quellcode kann in einem eigenen Repository versioniert werden. Zugangsdaten, lokale Datenbankzustände und Laufzeitdateien gehören nicht in Git. Der vorbereitete Quellcodeexport enthält ausschließlich versionierte Dateien und keine internen Git-Metadaten; die installationsspezifische Site-ID wird beim Export entfernt.
 
-Zum lokalen Start: `npm ci`, anschließend `npm run build`. D1 benötigt die Migration aus `drizzle/`; lokale Ausführung siehe Starter-Skripte und `.openai/hosting.json`. Ein öffentliches Repository allein stellt keinen laufenden Datenbank- oder Authentifizierungsdienst bereit. Die aktuelle vollständige Anwendung wird als Worker mit D1-Datenbank und vorgeschaltetem Login-Gateway gehostet.
+Zum lokalen Start: `npm ci`, anschließend `npm run build`. D1 benötigt die Migration aus `drizzle/`; lokale Ausführung siehe Starter-Skripte und `.openai/hosting.json`. Ein öffentliches Repository allein stellt keinen laufenden Datenbank- oder Authentifizierungsdienst bereit. Die Anwendung läuft als Cloudflare Worker mit D1-Datenbank; Deployment über Workers Builds aus diesem Repository (Build: `npm run build`, Deploy: `npx wrangler d1 migrations apply DB --remote && npx wrangler deploy`).
 
 Vorhandene Pfarrtexte, Fotos und PDFs sind übernommene Inhalte der bisherigen Pfarrwebsite. Für diese Fremdinhalte wird mit der Veröffentlichung des technischen Quellcodes keine neue Lizenz vergeben.

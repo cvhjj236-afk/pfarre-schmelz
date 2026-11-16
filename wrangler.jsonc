@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "pfarre-schmelz",
+  "main": "./worker/index.ts",
+  "compatibility_date": "2026-05-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "pfarre-schmelz-db",
+      "database_id": "8c2e68f6-48b9-42b3-a19b-01179c0a49d7",
+      "migrations_dir": "drizzle"
+    }
+  ]
+}
