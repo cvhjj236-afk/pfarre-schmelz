@@ -5,7 +5,8 @@ Responsive Pfarrwebsite mit serverseitigem CMS, D1-Datenbank, versionierten Inha
 ## Benutzung
 
 - `/`: Startseite; Navigation zu Kalender, Gottesdiensten, Pfarrleben, Glaube und Kontakt.
-- `/admin`: Redaktion für Termine, Meldungen, Seiten, Kontaktdaten und regelmäßige Gottesdienstzeiten.
+- `/redaktion`: eigener Zugang zur Redaktion für Termine, Meldungen, Seiten, Kontaktdaten und regelmäßige Gottesdienstzeiten. Die öffentliche Startseite verlinkt den Login nicht.
+- `/admin`: leitet ältere Lesezeichen auf `/redaktion` um.
 - Änderungen werden erst mit **Änderungen speichern** übernommen.
 - Termine und Meldungen können als Entwurf gespeichert werden und erscheinen dann nicht in der Besucheransicht.
 - Frühere gespeicherte Versionen lassen sich laden und als neue Version speichern.
@@ -19,7 +20,7 @@ Die Tabelle `revisions` speichert jeden Inhaltstand atomar. Ein Versionsvergleic
 
 ## Zugriff
 
-Die Besucherwebsite ist öffentlich. `/admin` zeigt ohne Anmeldung eine Login-Seite. Die Anmeldung erfolgt über ChatGPT; Redaktionszugriff wird anschließend serverseitig gegen die Runtime-Konfiguration `CMS_EDITOR_EMAILS` geprüft. Nur freigegebene Konten können die CMS-Daten lesen, Änderungen speichern und Versionen aufrufen. Eine Anmeldung allein gibt keine Bearbeitungsrechte. Ohne konfigurierte Freigabe bleibt der Zugriff gesperrt.
+Die Besucherwebsite ist öffentlich. `/redaktion` zeigt ohne Anmeldung eine Login-Seite. Die Anmeldung erfolgt über ChatGPT; Redaktionszugriff wird anschließend serverseitig gegen die Runtime-Konfiguration `CMS_EDITOR_EMAILS` geprüft. Nur freigegebene Konten können die CMS-Daten lesen, Änderungen speichern und Versionen aufrufen. Eine Anmeldung allein gibt keine Bearbeitungsrechte. Ohne konfigurierte Freigabe bleibt der Zugriff gesperrt.
 
 `GET /api/content` liefert ausschließlich veröffentlichte Termine und Meldungen. `GET /api/content?editor=1` liefert auch Entwürfe, verlangt jedoch ein freigegebenes Konto. Schreibzugriffe verlangen außerdem einen passenden Origin-Header. Identitätsheader werden ausschließlich vom authentifizierenden Hosting-Gateway gesetzt; diese Anwendung muss hinter diesem Gateway betrieben werden. Für einen Umzug auf anderes Hosting muss die Identitätsprüfung durch dessen verifizierte Authentifizierung ersetzt werden.
 
