@@ -7,6 +7,10 @@
   "workers_dev": false,
   "preview_urls": false,
   "routes": [{ "pattern": "pfarre-schmelz.hoferbaut.fyi", "custom_domain": true }],
+  "vars": {
+    "CF_ACCESS_TEAM_DOMAIN": "spring-surf-245b.cloudflareaccess.com",
+    "CF_ACCESS_AUD": "6758d6d27f8023b80a516af78f870a34f23b41e612b655756d7c45858c9c93fb"
+  },
   "observability": { "enabled": true },
   "d1_databases": [
     {
