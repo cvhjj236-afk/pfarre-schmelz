@@ -4,6 +4,9 @@
   "main": "./worker/index.ts",
   "compatibility_date": "2026-05-15",
   "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [{ "pattern": "pfarre-schmelz.hoferbaut.fyi", "custom_domain": true }],
   "observability": { "enabled": true },
   "d1_databases": [
     {
