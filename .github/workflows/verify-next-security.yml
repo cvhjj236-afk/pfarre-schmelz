@@ -1,0 +1,41 @@
+name: Verify Next.js security update
+
+on:
+  push:
+    branches:
+      - security/next-16-4-6
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Regenerate package lock
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Verify locked installation
+        run: npm ci --no-audit --no-fund
+      - name: Test backend
+        run: node tests/backend.mjs
+      - name: Type check
+        run: ./node_modules/.bin/tsc --noEmit
+      - name: Production build
+        run: npm run build
+      - name: Commit regenerated lockfile
+        run: |
+          if ! git diff --quiet -- package-lock.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add package-lock.json
+            git commit -m "chore(lockfile): refresh Next.js security patch resolution"
+            git push origin HEAD:security/next-16-4-6
+          fi
